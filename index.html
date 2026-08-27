@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ur" data-theme="dark">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>LinkPro Enterprise - Image Upload + Link Generator</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- ====== PRELOADER ====== -->
+<div id="preloader">
+    <div class="loader-ring">
+        <div></div><div></div><div></div><div></div>
+    </div>
+    <p>Initializing LinkPro Enterprise...</p>
+    <div class="loader-progress">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+</div>
+
+<!-- ====== LOGIN PAGE ====== -->
+<div class="container" id="loginContainer">
+    <div class="login-wrapper">
+        <div class="login-left">
+            <div class="login-brand">
+                <div class="brand-icon">
+                    <i class="fas fa-link"></i>
+                    <i class="fas fa-crown"></i>
+                    <span class="enterprise-badge">ENTERPRISE</span>
+                </div>
+                <h1>Link<span>Pro</span></h1>
+                <p class="tagline">AI-Powered Image & Link Management</p>
+                <div class="features-list">
+                    <span><i class="fas fa-check-circle"></i> Image Upload & Management</span>
+                    <span><i class="fas fa-check-circle"></i> 1:1 Link-to-Image Mapping</span>
+                    <span><i class="fas fa-check-circle"></i> Bulk Image Upload</span>
+                    <span><i class="fas fa-check-circle"></i> AI-Powered Optimization</span>
+                    <span><i class="fas fa-check-circle"></i> Real-Time Analytics</span>
+                    <span><i class="fas fa-check-circle"></i> Multi-Format Export</span>
+                </div>
+                <div class="security-badge">
+                    <i class="fas fa-shield-halved"></i> SOC2 Compliant · 256-bit Encryption
+                </div>
+            </div>
+        </div>
+        <div class="login-right">
+            <div class="login-card">
+                <div class="login-header-badge">
+                    <span class="badge-premium">PREMIUM</span>
+                </div>
+                <h2>Enterprise Access</h2>
+                <p class="login-subtitle">Secure login to your enterprise dashboard</p>
+                
+                <form id="loginForm">
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="username" placeholder="Username or Email" value="admin" />
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" placeholder="Password" value="12345" />
+                        <button type="button" class="toggle-password" onclick="togglePassword()">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="login-options">
+                        <label class="remember-me">
+                            <input type="checkbox" checked />
+                            <span>Remember me</span>
+                        </label>
+                        <a href="#" class="forgot-link">Forgot password?</a>
+                    </div>
+                    
+                    <button type="submit" class="login-btn">
+                        <i class="fas fa-sign-in-alt"></i> Secure Login
+                        <span class="btn-shimmer"></span>
+                    </button>
+                    
+                    <p id="loginError" class="error-msg"></p>
+                </form>
+                
+                <div class="login-footer">
+                    <p>Demo: <strong>admin</strong> / <strong>12345</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ====== DASHBOARD ====== -->
+<div class="container" id="dashboardContainer" style="display:none;">
+    
+    <!-- Top Navigation -->
+    <nav class="dashboard-nav">
+        <div class="nav-brand">
+            <i class="fas fa-link"></i>
+            <span>Link<span>Pro</span> <span class="enterprise-tag">ENTERPRISE</span></span>
+        </div>
+        <div class="nav-actions">
+            <div class="nav-search">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search links..." id="searchInput" oninput="searchLinks()" />
+            </div>
+            <button class="theme-toggle" onclick="toggleTheme()">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="notif-btn" onclick="toggleNotifications()">
+                <i class="fas fa-bell"></i>
+                <span class="badge">3</span>
+            </button>
+            <span class="link-counter" id="linkCounter">0 links</span>
+            <div class="user-profile" onclick="toggleUserMenu()">
+                <img src="https://ui-avatars.com/api/?name=Admin+User&background=6c63ff&color=fff&size=40&bold=true" alt="User" />
+                <div class="user-info">
+                    <span class="user-name">Admin</span>
+                    <span class="user-role">Enterprise Admin</span>
+                </div>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Notifications -->
+    <div class="notifications-dropdown" id="notificationsDropdown">
+        <div class="notif-header">
+            <h4>Notifications</h4>
+            <button onclick="clearNotifications()">Mark all read</button>
+        </div>
+        <div class="notif-list">
+            <div class="notif-item unread">
+                <i class="fas fa-upload" style="color:#6c63ff;"></i>
+                <div>
+                    <p>Images uploaded successfully</p>
+                    <span>Just now</span>
+                </div>
+            </div>
+            <div class="notif-item">
+                <i class="fas fa-link" style="color:#00b894;"></i>
+                <div>
+                    <p>New links generated</p>
+                    <span>2 minutes ago</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Menu -->
+    <div class="user-menu" id="userMenu">
+        <div class="user-menu-header">
+            <img src="https://ui-avatars.com/api/?name=Admin+User&background=6c63ff&color=fff&size=60&bold=true" alt="User" />
+            <div>
+                <h4>Admin User</h4>
+                <span>admin@linkpro.com</span>
+            </div>
+        </div>
+        <hr />
+        <a href="#"><i class="fas fa-user"></i> Profile</a>
+        <a href="#"><i class="fas fa-cog"></i> Settings</a>
+        <a href="#"><i class="fas fa-chart-bar"></i> Analytics</a>
+        <hr />
+        <a href="#" onclick="logout()" style="color: #ff6b6b;">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div class="dashboard-content">
+        
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card premium">
+                <div class="stat-icon" style="background: rgba(108,99,255,0.15); color: #6c63ff;">
+                    <i class="fas fa-link"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="totalLinks">0</h3>
+                    <p>Total Links</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(0,184,148,0.15); color: #00b894;">
+                    <i class="fas fa-images"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="totalImages">0</h3>
+                    <p>Images Uploaded</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(255,165,0,0.15); color: #ffa500;">
+                    <i class="fas fa-list"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="totalGenerated">0</h3>
+                    <p>Generated Links</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(255,20,147,0.15); color: #ff1493;">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="conversionRate">0%</h3>
+                    <p>Conversion Rate</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Tool -->
+        <div class="tool-card premium">
+            <div class="tool-header">
+                <div class="tool-title">
+                    <i class="fas fa-layer-group"></i>
+                    <h3>Image Upload + Link Generator</h3>
+                    <span class="ai-badge"><i class="fas fa-robot"></i> AI-Enhanced</span>
+                </div>
+                <div class="tool-actions">
+                    <button class="tool-btn primary" onclick="addRow()">
+                        <i class="fas fa-plus"></i> Add Row
+                    </button>
+                    <button class="tool-btn" onclick="bulkImport()">
+                        <i class="fas fa-file-import"></i> Bulk Import
+                    </button>
+                    <button class="tool-btn" onclick="uploadMultipleImages()">
+                        <i class="fas fa-cloud-upload-alt"></i> Upload Images
+                    </button>
+                    <button class="tool-btn" onclick="clearAll()">
+                        <i class="fas fa-eraser"></i> Clear
+                    </button>
+                </div>
+            </div>
+
+            <div class="tool-body">
+                <!-- Bulk Import Area -->
+                <div class="bulk-import-area" id="bulkImportArea" style="display:none;">
+                    <div class="bulk-header">
+                        <h4><i class="fas fa-file-import"></i> Bulk Import</h4>
+                        <span>Format: URL, IMAGE_URL (one per line)</span>
+                    </div>
+                    <textarea id="bulkText" placeholder="https://example.com, https://image.com/pic.jpg"></textarea>
+                    <div class="bulk-actions">
+                        <button onclick="processBulk()" class="generate-btn small">
+                            <i class="fas fa-play"></i> Process
+                        </button>
+                        <button onclick="closeBulk()" class="tool-btn">Cancel</button>
+                    </div>
+                </div>
+
+                <!-- Image Upload Area -->
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-zone" id="uploadZone">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <h4>Drop images here or click to upload</h4>
+                        <p>Supports JPG, PNG, GIF, WebP (Max 10MB each)</p>
+                        <input type="file" id="fileInput" multiple accept="image/*" style="display:none;" />
+                        <button onclick="document.getElementById('fileInput').click()" class="upload-btn">
+                            <i class="fas fa-folder-open"></i> Browse Images
+                        </button>
+                    </div>
+                    <div class="upload-preview" id="uploadPreview"></div>
+                </div>
+
+                <!-- Link Rows -->
+                <div id="linkRowsContainer">
+                    <!-- Row 1 -->
+                    <div class="link-row" data-row="1">
+                        <div class="row-number">
+                            <span>#1</span>
+                            <span class="row-status"></span>
+                        </div>
+                        <div class="row-inputs">
+                            <div class="input-field">
+                                <label><i class="fas fa-link"></i> URL</label>
+                                <input type="url" class="link-input" placeholder="https://example.com" />
+                            </div>
+                            <div class="input-field image-upload-field">
+                                <label><i class="fas fa-image"></i> Image</label>
+                                <div class="image-input-wrapper">
+                                    <input type="url" class="image-input" placeholder="Image URL or upload" />
+                                    <button class="upload-image-btn" onclick="uploadImageForRow(this)" title="Upload image">
+                                        <i class="fas fa-upload"></i>
+                                    </button>
+                                    <input type="file" class="row-file-input" accept="image/*" style="display:none;" />
+                                </div>
+                                <div class="row-image-preview"></div>
+                            </div>
+                        </div>
+                        <div class="row-actions">
+                            <button class="row-btn preview-btn" onclick="previewRowImage(this)" title="Preview">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="row-btn duplicate-btn" onclick="duplicateRow(this)" title="Duplicate">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button class="row-btn remove-row" onclick="removeRow(this)" title="Remove">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Generate Button -->
+                <button onclick="generateLinks()" class="generate-btn premium">
+                    <i class="fas fa-robot"></i> AI Generate All Links (<span id="rowCount">1</span>)
+                    <span class="btn-shimmer"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="result-card premium" id="resultCard">
+            <div class="result-tabs">
+                <button class="result-tab active" data-tab="links" onclick="switchTab('links')">
+                    <i class="fas fa-link"></i> Generated Links
+                </button>
+                <button class="result-tab" data-tab="gallery" onclick="switchTab('gallery')">
+                    <i class="fas fa-images"></i> Gallery
+                </button>
+            </div>
+            <div class="result-content" id="resultContent">
+                <div class="result-placeholder">
+                    <i class="fas fa-magic" style="font-size: 48px; opacity: 0.3;"></i>
+                    <p>Upload images, add links, and generate</p>
+                    <span>1:1 mapping with AI optimization</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="dashboard-footer">
+            <div class="footer-left">
+                <p>&copy; 2026 LinkPro Enterprise — AI-Powered Link Management</p>
+                <span class="version">v3.5.0</span>
+            </div>
+            <div class="footer-links">
+                <a href="#"><i class="fas fa-shield"></i> Security</a>
+                <a href="#"><i class="fas fa-file-contract"></i> Terms</a>
+                <a href="#"><i class="fas fa-headset"></i> Support</a>
+            </div>
+        </footer>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
