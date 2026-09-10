@@ -1,5 +1,5 @@
 // ============================================
-// SHORTLINK - MAIN JAVASCRIPT (FIXED VERSION)
+// SHORTLINK - MAIN JAVASCRIPT (FINAL FIXED)
 // ============================================
 
 // localStorage se links load karein
@@ -22,15 +22,25 @@ function generateCode() {
     return code;
 }
 
-// ✅ Base URL detect karein (GitHub Pages ka /links/ folder bhi handle karega)
+// ✅ FIXED: Base URL detect karein (GitHub Pages ka /links/ folder bhi handle karega)
 function getBaseUrl() {
     let path = window.location.pathname;
-    // index.html ya dashboard.html hata dein
-    path = path.replace('index.html', '').replace('dashboard.html', '').replace('redirect.html', '');
+
+    // Filename hata dein
+    path = path.replace('index.html', '')
+               .replace('dashboard.html', '')
+               .replace('redirect.html', '');
+
     // Agar path '/' par khatam nahi hota toh '/' add karein
     if (!path.endsWith('/')) {
         path += '/';
     }
+
+    // ✅ AGAR PATH SIRF '/' HAI (repo name missing) TOH 'links/' ADD KAREIN
+    if (path === '/') {
+        path = '/links/';
+    }
+
     return window.location.origin + path;
 }
 
