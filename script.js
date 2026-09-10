@@ -1,5 +1,5 @@
 // ============================================
-// SHORTLINK - MAIN JAVASCRIPT
+// SHORTLINK - MAIN JAVASCRIPT (FIXED VERSION)
 // ============================================
 
 // localStorage se links load karein
@@ -20,6 +20,18 @@ function generateCode() {
         code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return code;
+}
+
+// ✅ Base URL detect karein (GitHub Pages ka /links/ folder bhi handle karega)
+function getBaseUrl() {
+    let path = window.location.pathname;
+    // index.html ya dashboard.html hata dein
+    path = path.replace('index.html', '').replace('dashboard.html', '').replace('redirect.html', '');
+    // Agar path '/' par khatam nahi hota toh '/' add karein
+    if (!path.endsWith('/')) {
+        path += '/';
+    }
+    return window.location.origin + path;
 }
 
 // ============================================
@@ -51,7 +63,7 @@ function shortenUrl() {
     const links = getLinks();
     const existing = links.find(l => l.original === url);
     if (existing) {
-        const shortUrl = `${window.location.origin}/redirect.html?c=${existing.code}`;
+        const shortUrl = `${getBaseUrl()}redirect.html?c=${existing.code}`;
         result.innerHTML = `✅ Already exists: <a href="${shortUrl}" target="_blank">${shortUrl}</a>`;
         result.style.color = '#28a745';
         return;
@@ -73,7 +85,7 @@ function shortenUrl() {
     links.push(newLink);
     saveLinks(links);
 
-    const shortUrl = `${window.location.origin}/redirect.html?c=${code}`;
+    const shortUrl = `${getBaseUrl()}redirect.html?c=${code}`;
     result.innerHTML = `
         ✅ Short link created!<br><br>
         <a href="${shortUrl}" target="_blank">${shortUrl}</a>
@@ -129,7 +141,7 @@ function loadDashboard() {
     const sortedLinks = [...links].sort((a, b) => b.createdTimestamp - a.createdTimestamp);
 
     sortedLinks.forEach((link, index) => {
-        const shortUrl = `${window.location.origin}/redirect.html?c=${link.code}`;
+        const shortUrl = `${getBaseUrl()}redirect.html?c=${link.code}`;
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${index + 1}</td>
