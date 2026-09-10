@@ -1,32 +1,57 @@
 // ============================================
+// FIREBASE SETUP (Aap Ka Config)
+// ============================================
+const firebaseConfig = {
+  apiKey: "AIzaSyCTeH3CY8yHJeqxEoijDBCOYgEBwP7yhCE",
+  authDomain: "links-pro-7851f.firebaseapp.com",
+  projectId: "links-pro-7851f",
+  storageBucket: "links-pro-7851f.firebasestorage.app",
+  messagingSenderId: "164171402860",
+  appId: "1:164171402860:web:7432c09aa3f1347f519249",
+  measurementId: "G-ENZNQD0NF"
+};
+
+// Firebase initialize karein
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ============================================
 // REDIRECT PAGE - SEEDHA REDIRECT (NO SECRET KEY)
-// Yeh code SAB SE UPAR hona chahiye!
 // ============================================
 if (window.location.pathname.includes('redirect.html')) {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('c');
+    (async () => {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('c');
 
-    if (code) {
-        const links = JSON.parse(localStorage.getItem('shortLinks')) || [];
-        const link = links.find(l => l.code === code);
+        if (!code) {
+            window.location.href = 'index.html';
+            return;
+        }
 
-        if (link) {
-            link.clicks = (link.clicks || 0) + 1;
-            localStorage.setItem('shortLinks', JSON.stringify(links));
-            window.location.replace(link.original);
-        } else {
+        try {
+            const doc = await db.collection('links').doc(code).get();
+            
+            if (doc.exists) {
+                const link = doc.data();
+                await db.collection('links').doc(code).update({
+                    clicks: (link.clicks || 0) + 1,
+                    lastClick: new Date().toISOString()
+                });
+                window.location.replace(link.original);
+            } else {
+                window.location.href = 'index.html';
+            }
+        } catch (error) {
+            console.error('Error:', error);
             window.location.href = 'index.html';
         }
-    } else {
-        window.location.href = 'index.html';
-    }
+    })();
 }
 
 // ============================================
 // SIKANDER BALOCH - PROFESSIONAL SHORTLINK
 // ============================================
 
-// 🔑 SECRET KEY
 const SECRET_KEY = 'abr@2026';
 
 // ============================================
@@ -88,16 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================
-// STORAGE FUNCTIONS
+// GENERATE CODE
 // ============================================
-function getLinks() {
-    return JSON.parse(localStorage.getItem('shortLinks')) || [];
-}
-
-function saveLinks(links) {
-    localStorage.setItem('shortLinks', JSON.stringify(links));
-}
-
 function generateCode() {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
     let code = '';
@@ -122,9 +139,9 @@ function getBaseUrl() {
 }
 
 // ============================================
-// URL SHORTEN
+// URL SHORTEN (Firebase Version)
 // ============================================
-function shortenUrl() {
+async function shortenUrl() {
     const urlInput = document.getElementById('urlInput');
     const result = document.getElementById('result');
     let url = urlInput.value.trim();
@@ -147,10 +164,14 @@ function shortenUrl() {
         return;
     }
 
-    const links = getLinks();
-    const existing = links.find(l => l.original === url);
-    if (existing) {
-        const shortUrl = `${getBaseUrl()}redirect.html?c=${existing.code}`;
+    result.innerHTML = '⏳ Link ban raha hai...';
+    result.style.color = '#007bff';
+
+    const existing = await db.collection('links').where('original', '==', url).get();
+    
+    if (!existing.empty) {
+        const existingLink = existing.docs[0].data();
+        const shortUrl = `${getBaseUrl()}redirect.html?c=${existingLink.code}`;
         result.innerHTML = `✅ Yeh link pehle se maujood hai: <br><br><a href="${shortUrl}" target="_blank">${shortUrl}</a>`;
         result.style.color = '#28a745';
         return;
@@ -169,20 +190,25 @@ function shortenUrl() {
         createdTimestamp: Date.now()
     };
 
-    links.push(newLink);
-    saveLinks(links);
+    try {
+        await db.collection('links').doc(code).set(newLink);
+        
+        const shortUrl = `${getBaseUrl()}redirect.html?c=${code}`;
+        result.innerHTML = `
+            ✅ Short link ban gaya!<br><br>
+            <a href="${shortUrl}" target="_blank">${shortUrl}</a>
+            <br><br>
+            <button class="btn-copy" onclick="copyToClipboard('${shortUrl}')">📋 Copy Link</button>
+            <a href="dashboard.html" class="btn-open" style="text-decoration:none;display:inline-block;">📊 Dashboard</a>
+        `;
+        result.style.color = '#28a745';
 
-    const shortUrl = `${getBaseUrl()}redirect.html?c=${code}`;
-    result.innerHTML = `
-        ✅ Short link ban gaya!<br><br>
-        <a href="${shortUrl}" target="_blank">${shortUrl}</a>
-        <br><br>
-        <button class="btn-copy" onclick="copyToClipboard('${shortUrl}')">📋 Copy Link</button>
-        <a href="dashboard.html" class="btn-open" style="text-decoration:none;display:inline-block;">📊 Dashboard</a>
-    `;
-    result.style.color = '#28a745';
-
-    urlInput.value = '';
+        urlInput.value = '';
+    } catch (error) {
+        console.error('Error:', error);
+        result.innerHTML = '❌ Error aaya. Dobara try karein.';
+        result.style.color = '#dc3545';
+    }
 }
 
 // ============================================
@@ -234,31 +260,40 @@ function showToast(message) {
 }
 
 // ============================================
-// DASHBOARD
+// DASHBOARD (Firebase Version)
 // ============================================
 let allLinks = [];
 
-function loadDashboard() {
-    const links = getLinks();
-    allLinks = links;
+async function loadDashboard() {
+    try {
+        const snapshot = await db.collection('links').orderBy('createdTimestamp', 'desc').get();
+        const links = [];
+        snapshot.forEach(doc => {
+            links.push(doc.data());
+        });
 
-    const tbody = document.getElementById('linkBody');
-    const emptyMsg = document.getElementById('emptyMsg');
-    const totalLinks = document.getElementById('totalLinks');
-    const totalClicks = document.getElementById('totalClicks');
+        allLinks = links;
 
-    const totalClicksCount = links.reduce((sum, l) => sum + (l.clicks || 0), 0);
-    totalLinks.textContent = links.length;
-    totalClicks.textContent = totalClicksCount;
+        const tbody = document.getElementById('linkBody');
+        const emptyMsg = document.getElementById('emptyMsg');
+        const totalLinks = document.getElementById('totalLinks');
+        const totalClicks = document.getElementById('totalClicks');
 
-    if (links.length === 0) {
-        tbody.innerHTML = '';
-        emptyMsg.style.display = 'block';
-        return;
+        const totalClicksCount = links.reduce((sum, l) => sum + (l.clicks || 0), 0);
+        totalLinks.textContent = links.length;
+        totalClicks.textContent = totalClicksCount;
+
+        if (links.length === 0) {
+            tbody.innerHTML = '';
+            emptyMsg.style.display = 'block';
+            return;
+        }
+
+        emptyMsg.style.display = 'none';
+        renderLinks(links);
+    } catch (error) {
+        console.error('Error:', error);
     }
-
-    emptyMsg.style.display = 'none';
-    renderLinks(links);
 }
 
 function renderLinks(links) {
@@ -295,51 +330,17 @@ function searchLinks() {
     renderLinks(filtered);
 }
 
-function deleteLink(code) {
+async function deleteLink(code) {
     if (!confirm('Kya aap yeh link delete karna chahte hain?')) return;
 
-    let links = getLinks();
-    links = links.filter(l => l.code !== code);
-    saveLinks(links);
-    allLinks = links;
-
-    const totalClicksCount = links.reduce((sum, l) => sum + (l.clicks || 0), 0);
-    document.getElementById('totalLinks').textContent = links.length;
-    document.getElementById('totalClicks').textContent = totalClicksCount;
-
-    if (links.length === 0) {
-        document.getElementById('emptyMsg').style.display = 'block';
+    try {
+        await db.collection('links').doc(code).delete();
+        showToast('🗑️ Link delete ho gaya');
+        loadDashboard();
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('❌ Delete nahi hua');
     }
-
-    renderLinks(links);
-    showToast('🗑️ Link delete ho gaya');
-}
-
-// ============================================
-// DIRECT REDIRECT (fallback — upar wala code already redirect kar chuka hoga)
-// ============================================
-function directRedirect() {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('c');
-
-    if (!code) {
-        window.location.href = 'index.html';
-        return;
-    }
-
-    const links = getLinks();
-    const link = links.find(l => l.code === code);
-
-    if (!link) {
-        window.location.href = 'index.html';
-        return;
-    }
-
-    link.clicks = (link.clicks || 0) + 1;
-    link.lastClick = new Date().toISOString();
-    saveLinks(links);
-
-    window.location.replace(link.original);
 }
 
 // ============================================
