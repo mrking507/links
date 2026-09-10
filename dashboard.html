@@ -3,45 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - ShortLink</title>
+    <title>Dashboard - Sikander Baloch</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <nav>
-        <div class="logo">🔗 ShortLink</div>
-        <div class="nav-links">
-            <a href="index.html">Home</a>
-            <a href="dashboard.html">Dashboard</a>
+
+    <!-- 🔐 SECRET KEY MODAL -->
+    <div id="keyModal" class="key-modal">
+        <div class="key-box">
+            <div class="key-icon">🔐</div>
+            <h2>Sikander Baloch</h2>
+            <p>Yeh website protected hai. Secret key daalein.</p>
+            <input type="password" id="secretKeyInput" placeholder="Enter secret key..." autocomplete="off">
+            <button onclick="checkSecretKey()">Unlock</button>
+            <p id="keyError" class="key-error"></p>
         </div>
-    </nav>
+    </div>
 
-    <section class="dashboard">
-        <h1>📊 Your Short Links</h1>
-        <p>Total Links: <span id="totalLinks">0</span> | Total Clicks: <span id="totalClicks">0</span></p>
+    <!-- MAIN CONTENT -->
+    <div id="mainContent" style="display:none;">
+        <nav>
+            <div class="logo">🔗 Sikander Baloch</div>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="dashboard.html">Dashboard</a>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </nav>
 
-        <table id="linkTable">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Original URL</th>
-                    <th>Short Link</th>
-                    <th>Clicks</th>
-                    <th>Created</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="linkBody"></tbody>
-        </table>
+        <section class="dashboard">
+            <div class="dash-header">
+                <div>
+                    <h1>📊 Dashboard</h1>
+                    <p class="dash-sub">Welcome back, <strong>Sikander Baloch</strong></p>
+                </div>
+                <div class="stats">
+                    <div class="stat-card">
+                        <span class="stat-num" id="totalLinks">0</span>
+                        <span class="stat-label">Total Links</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-num" id="totalClicks">0</span>
+                        <span class="stat-label">Total Clicks</span>
+                    </div>
+                </div>
+            </div>
 
-        <p id="emptyMsg" class="empty-msg">No links yet. <a href="index.html">Create one</a></p>
-    </section>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Search links..." onkeyup="searchLinks()">
+            </div>
 
-    <footer>
-        <p>Powered by apkawork.xyz</p>
-    </footer>
+            <div class="table-wrap">
+                <table id="linkTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Original URL</th>
+                            <th>Short Link</th>
+                            <th>Clicks</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="linkBody"></tbody>
+                </table>
+            </div>
+
+            <p id="emptyMsg" class="empty-msg">No links yet. <a href="index.html">Create one</a></p>
+        </section>
+
+        <footer>
+            <p>© 2026 <strong>Sikander Baloch</strong> — All Rights Reserved</p>
+            <p class="footer-sub">Professional URL Shortener Service</p>
+        </footer>
+    </div>
 
     <script src="script.js"></script>
     <script>
+        checkAuth();
         if (window.location.pathname.includes('dashboard.html')) {
             loadDashboard();
         }
