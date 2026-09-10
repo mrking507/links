@@ -1,4 +1,28 @@
 // ============================================
+// REDIRECT PAGE - SEEDHA REDIRECT (NO SECRET KEY)
+// Yeh code SAB SE UPAR hona chahiye!
+// ============================================
+if (window.location.pathname.includes('redirect.html')) {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('c');
+
+    if (code) {
+        const links = JSON.parse(localStorage.getItem('shortLinks')) || [];
+        const link = links.find(l => l.code === code);
+
+        if (link) {
+            link.clicks = (link.clicks || 0) + 1;
+            localStorage.setItem('shortLinks', JSON.stringify(links));
+            window.location.replace(link.original);
+        } else {
+            window.location.href = 'index.html';
+        }
+    } else {
+        window.location.href = 'index.html';
+    }
+}
+
+// ============================================
 // SIKANDER BALOCH - PROFESSIONAL SHORTLINK
 // ============================================
 
@@ -292,7 +316,7 @@ function deleteLink(code) {
 }
 
 // ============================================
-// DIRECT REDIRECT
+// DIRECT REDIRECT (fallback — upar wala code already redirect kar chuka hoga)
 // ============================================
 function directRedirect() {
     const params = new URLSearchParams(window.location.search);
