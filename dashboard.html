@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - ShortLink</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav>
+        <div class="logo">🔗 ShortLink</div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="dashboard.html">Dashboard</a>
+        </div>
+    </nav>
+
+    <section class="dashboard">
+        <h1>📊 Your Short Links</h1>
+        <p>Total Links: <span id="totalLinks">0</span> | Total Clicks: <span id="totalClicks">0</span></p>
+
+        <table id="linkTable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Original URL</th>
+                    <th>Short Link</th>
+                    <th>Clicks</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="linkBody"></tbody>
+        </table>
+
+        <p id="emptyMsg" class="empty-msg">No links yet. <a href="index.html">Create one</a></p>
+    </section>
+
+    <footer>
+        <p>Powered by apkawork.xyz</p>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        if (window.location.pathname.includes('dashboard.html')) {
+            loadDashboard();
+        }
+    </script>
+</body>
+</html>
