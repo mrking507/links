@@ -1,18 +1,79 @@
 // ============================================
-// SHORTLINK - MAIN JAVASCRIPT (FINAL FIXED)
+// SIKANDER BALOCH - PROFESSIONAL SHORTLINK
 // ============================================
 
-// localStorage se links load karein
+// 🔑 SECRET KEY
+const SECRET_KEY = 'abr@2026';
+
+// ============================================
+// AUTHENTICATION
+// ============================================
+function checkAuth() {
+    const isAuth = sessionStorage.getItem('shortlink_auth');
+    const keyModal = document.getElementById('keyModal');
+    const mainContent = document.getElementById('mainContent');
+
+    if (isAuth === 'true') {
+        if (keyModal) keyModal.style.display = 'none';
+        if (mainContent) mainContent.style.display = 'block';
+    } else {
+        if (keyModal) keyModal.style.display = 'flex';
+        if (mainContent) mainContent.style.display = 'none';
+    }
+}
+
+function checkSecretKey() {
+    const input = document.getElementById('secretKeyInput');
+    const error = document.getElementById('keyError');
+    const enteredKey = input.value.trim();
+
+    if (enteredKey === SECRET_KEY) {
+        sessionStorage.setItem('shortlink_auth', 'true');
+        const keyModal = document.getElementById('keyModal');
+        const mainContent = document.getElementById('mainContent');
+        if (keyModal) keyModal.style.display = 'none';
+        if (mainContent) mainContent.style.display = 'block';
+        error.textContent = '';
+        input.value = '';
+
+        if (window.location.pathname.includes('dashboard.html')) {
+            loadDashboard();
+        }
+    } else {
+        error.textContent = '❌ Galat secret key! Dobara try karein.';
+        input.value = '';
+        input.focus();
+    }
+}
+
+function logout() {
+    if (confirm('Kya aap logout karna chahte hain?')) {
+        sessionStorage.removeItem('shortlink_auth');
+        window.location.href = 'index.html';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const keyInput = document.getElementById('secretKeyInput');
+    if (keyInput) {
+        keyInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkSecretKey();
+        });
+        setTimeout(() => keyInput.focus(), 300);
+    }
+});
+
+// ============================================
+// STORAGE FUNCTIONS
+// ============================================
 function getLinks() {
     return JSON.parse(localStorage.getItem('shortLinks')) || [];
 }
 
-// localStorage mein links save karein
 function saveLinks(links) {
     localStorage.setItem('shortLinks', JSON.stringify(links));
 }
 
-// Random short code generate karein
 function generateCode() {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
     let code = '';
@@ -22,30 +83,22 @@ function generateCode() {
     return code;
 }
 
-// ✅ FIXED: Base URL detect karein (GitHub Pages ka /links/ folder bhi handle karega)
 function getBaseUrl() {
     let path = window.location.pathname;
-
-    // Filename hata dein
     path = path.replace('index.html', '')
                .replace('dashboard.html', '')
                .replace('redirect.html', '');
-
-    // Agar path '/' par khatam nahi hota toh '/' add karein
     if (!path.endsWith('/')) {
         path += '/';
     }
-
-    // ✅ AGAR PATH SIRF '/' HAI (repo name missing) TOH 'links/' ADD KAREIN
     if (path === '/') {
         path = '/links/';
     }
-
     return window.location.origin + path;
 }
 
 // ============================================
-// URL SHORTEN KARNE KA FUNCTION
+// URL SHORTEN
 // ============================================
 function shortenUrl() {
     const urlInput = document.getElementById('urlInput');
@@ -53,7 +106,7 @@ function shortenUrl() {
     let url = urlInput.value.trim();
 
     if (!url) {
-        result.innerHTML = '❌ Please enter a URL';
+        result.innerHTML = '❌ Pehle koi URL daalein';
         result.style.color = '#dc3545';
         return;
     }
@@ -65,7 +118,7 @@ function shortenUrl() {
     try {
         new URL(url);
     } catch (e) {
-        result.innerHTML = '❌ Invalid URL. Please check and try again.';
+        result.innerHTML = '❌ Galat URL. Dobara check karein.';
         result.style.color = '#dc3545';
         return;
     }
@@ -74,7 +127,7 @@ function shortenUrl() {
     const existing = links.find(l => l.original === url);
     if (existing) {
         const shortUrl = `${getBaseUrl()}redirect.html?c=${existing.code}`;
-        result.innerHTML = `✅ Already exists: <a href="${shortUrl}" target="_blank">${shortUrl}</a>`;
+        result.innerHTML = `✅ Yeh link pehle se maujood hai: <br><br><a href="${shortUrl}" target="_blank">${shortUrl}</a>`;
         result.style.color = '#28a745';
         return;
     }
@@ -97,11 +150,11 @@ function shortenUrl() {
 
     const shortUrl = `${getBaseUrl()}redirect.html?c=${code}`;
     result.innerHTML = `
-        ✅ Short link created!<br><br>
+        ✅ Short link ban gaya!<br><br>
         <a href="${shortUrl}" target="_blank">${shortUrl}</a>
         <br><br>
-        <button class="btn-copy" onclick="copyToClipboard('${shortUrl}')">📋 Copy</button>
-        <a href="dashboard.html" class="btn-copy" style="text-decoration:none;display:inline-block;">📊 Dashboard</a>
+        <button class="btn-copy" onclick="copyToClipboard('${shortUrl}')">📋 Copy Link</button>
+        <a href="dashboard.html" class="btn-open" style="text-decoration:none;display:inline-block;">📊 Dashboard</a>
     `;
     result.style.color = '#28a745';
 
@@ -112,24 +165,59 @@ function shortenUrl() {
 // COPY TO CLIPBOARD
 // ============================================
 function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        alert('✅ Link copied to clipboard!');
-    }).catch(() => {
-        const input = document.createElement('input');
-        input.value = text;
-        document.body.appendChild(input);
-        input.select();
-        document.execCommand('copy');
-        document.body.removeChild(input);
-        alert('✅ Link copied!');
-    });
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast('✅ Link copy ho gaya!');
+        }).catch(() => fallbackCopy(text));
+    } else {
+        fallbackCopy(text);
+    }
+}
+
+function fallbackCopy(text) {
+    const input = document.createElement('input');
+    input.value = text;
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand('copy');
+    document.body.removeChild(input);
+    showToast('✅ Link copy ho gaya!');
+}
+
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #28a745;
+        color: white;
+        padding: 12px 25px;
+        border-radius: 8px;
+        font-size: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        z-index: 10000;
+        animation: slideUp 0.3s ease;
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = '0.3s';
+        setTimeout(() => toast.remove(), 300);
+    }, 2000);
 }
 
 // ============================================
-// DASHBOARD LOAD KARNE KA FUNCTION
+// DASHBOARD
 // ============================================
+let allLinks = [];
+
 function loadDashboard() {
     const links = getLinks();
+    allLinks = links;
+
     const tbody = document.getElementById('linkBody');
     const emptyMsg = document.getElementById('emptyMsg');
     const totalLinks = document.getElementById('totalLinks');
@@ -146,6 +234,11 @@ function loadDashboard() {
     }
 
     emptyMsg.style.display = 'none';
+    renderLinks(links);
+}
+
+function renderLinks(links) {
+    const tbody = document.getElementById('linkBody');
     tbody.innerHTML = '';
 
     const sortedLinks = [...links].sort((a, b) => b.createdTimestamp - a.createdTimestamp);
@@ -155,33 +248,51 @@ function loadDashboard() {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${index + 1}</td>
-            <td><a href="${link.original}" target="_blank">${link.original.substring(0, 50)}${link.original.length > 50 ? '...' : ''}</a></td>
+            <td><a href="${link.original}" target="_blank">${link.original.substring(0, 45)}${link.original.length > 45 ? '...' : ''}</a></td>
             <td><a href="${shortUrl}" target="_blank">${shortUrl}</a></td>
             <td><strong>${link.clicks || 0}</strong></td>
             <td>${link.created}</td>
             <td>
                 <button class="btn-copy" onclick="copyToClipboard('${shortUrl}')">📋 Copy</button>
-                <button class="btn-delete" onclick="deleteLink('${link.code}')">🗑️ Delete</button>
+                <button class="btn-open" onclick="window.open('${shortUrl}', '_blank')">🔗 Open</button>
+                <button class="btn-delete" onclick="deleteLink('${link.code}')">🗑️</button>
             </td>
         `;
         tbody.appendChild(row);
     });
 }
 
-// ============================================
-// LINK DELETE KARNE KA FUNCTION
-// ============================================
+function searchLinks() {
+    const query = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = allLinks.filter(link =>
+        link.original.toLowerCase().includes(query) ||
+        link.code.toLowerCase().includes(query)
+    );
+    renderLinks(filtered);
+}
+
 function deleteLink(code) {
-    if (!confirm('Are you sure you want to delete this link?')) return;
+    if (!confirm('Kya aap yeh link delete karna chahte hain?')) return;
 
     let links = getLinks();
     links = links.filter(l => l.code !== code);
     saveLinks(links);
-    loadDashboard();
+    allLinks = links;
+
+    const totalClicksCount = links.reduce((sum, l) => sum + (l.clicks || 0), 0);
+    document.getElementById('totalLinks').textContent = links.length;
+    document.getElementById('totalClicks').textContent = totalClicksCount;
+
+    if (links.length === 0) {
+        document.getElementById('emptyMsg').style.display = 'block';
+    }
+
+    renderLinks(links);
+    showToast('🗑️ Link delete ho gaya');
 }
 
 // ============================================
-// DIRECT REDIRECT - NO WAIT
+// DIRECT REDIRECT
 // ============================================
 function directRedirect() {
     const params = new URLSearchParams(window.location.search);
@@ -200,23 +311,21 @@ function directRedirect() {
         return;
     }
 
-    // ✅ Click count badhayein (background mein)
     link.clicks = (link.clicks || 0) + 1;
     link.lastClick = new Date().toISOString();
     saveLinks(links);
 
-    // ✅ Turant original site open karein
     window.location.replace(link.original);
 }
 
 // ============================================
-// ENTER KEY SE SHORTEN
+// TOAST ANIMATION
 // ============================================
-document.addEventListener('DOMContentLoaded', () => {
-    const urlInput = document.getElementById('urlInput');
-    if (urlInput) {
-        urlInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') shortenUrl();
-        });
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideUp {
+        from { transform: translate(-50%, 20px); opacity: 0; }
+        to { transform: translate(-50%, 0); opacity: 1; }
     }
-});
+`;
+document.head.appendChild(style);
